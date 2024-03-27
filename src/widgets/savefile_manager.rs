@@ -93,23 +93,23 @@ impl SavefileManagerInner {
         savefile_path: PathBuf,
     ) -> Result<Self, String> {
         let label_load = match key_load {
-            Some(key_load) => format!("Load savefile ({key_load})"),
-            None => "Load savefile".to_string(),
+            Some(key_load) => format!("加载存档文件 ({key_load})"),
+            None => "加载存档文件".to_string(),
         };
 
         let label_close = match key_close {
-            Some(key_close) => format!("Close ({key_close})"),
-            None => "Close".to_string(),
+            Some(key_close) => format!("关闭 ({key_close})"),
+            None => "关闭".to_string(),
         };
 
         let Some(savefile_path_parent) = savefile_path.parent() else {
             return Err(format!(
-                "Couldn't construct file browser: {savefile_path:?} has no parent"
+                "无法创建文件浏览器: {savefile_path:?} 没有父目录"
             ));
         };
 
         let file_tree = FileTree::new(savefile_path_parent.to_path_buf())
-            .map_err(|e| format!("Couldn't construct file browser: {}", e))?;
+            .map_err(|e| format!("无法创建文件浏览器: {}", e))?;
 
         Ok(SavefileManagerInner {
             label_load,
@@ -128,33 +128,33 @@ impl SavefileManagerInner {
 
     fn load_savefile(&mut self) {
         let Some(src_path) = self.current_file.as_ref() else {
-            self.logs.push("No current path! Can't load savefile.".to_string());
+            self.logs.push("当前路径不存在，无法加载保存文件".to_string());
             return;
         };
 
         if !src_path.is_file() {
-            self.logs.push("Can't load a directory -- please choose a file.".to_string());
+            self.logs.push("无法加载目录 -- 请选择一个文件".to_string());
             return;
         }
 
         match load_savefile(src_path, &self.savefile_path) {
             Ok(()) => self.logs.push(format!(
-                "Loaded {}/{}",
+                "已加载 {}/{}",
                 if self.breadcrumbs == "/" { "" } else { &self.breadcrumbs },
                 src_path.file_name().unwrap().to_str().unwrap()
             )),
-            Err(e) => self.logs.push(format!("Error loading savefile: {}", e)),
+            Err(e) => self.logs.push(format!("无法加载存档文件: {}", e)),
         };
     }
 
     fn import_savefile(&mut self) {
         if self.savefile_name.is_empty() {
-            self.logs.push(String::from("Cannot save to empty filename"));
+            self.logs.push(String::from("不能保存到空文件名"));
             return;
         }
 
         if self.savefile_name.contains('/') || self.savefile_name.contains('\\') {
-            self.logs.push(String::from("Savefile name cannot contain path separator"));
+            self.logs.push(String::from("存档文件名不能包含路径分隔符"));
             return;
         }
 
@@ -175,15 +175,15 @@ impl SavefileManagerInner {
             Ok(()) => {
                 self.savefile_name.clear();
                 if let Err(e) = self.file_tree.refresh() {
-                    self.logs.push(format!("Couldn't refresh file tree: {e}"));
+                    self.logs.push(format!("无法刷新文件列表: {e}"));
                 }
                 self.logs.push(format!(
-                    "Imported {}/{}",
+                    "已导入 {}/{}",
                     if self.breadcrumbs == "/" { "" } else { &self.breadcrumbs },
                     dst_path.file_name().unwrap().to_str().unwrap()
                 ))
             },
-            Err(e) => self.logs.push(format!("Error importing savefile: {}", e)),
+            Err(e) => self.logs.push(format!("无法导入存档文件: {}", e)),
         };
     }
 }
@@ -202,7 +202,7 @@ impl Widget for SavefileManagerInner {
         if ui.button_with_size(&self.label_load, [button_width, BUTTON_HEIGHT]) {
             ui.open_popup(SFM_TAG);
             if let Err(e) = self.file_tree.refresh() {
-                self.logs.push(format!("Couldn't refresh file tree: {e}"));
+                self.logs.push(format!("无法刷新文件列表: {e}"));
             }
         }
 
@@ -256,19 +256,19 @@ impl Widget for SavefileManagerInner {
 
             {
                 let _tok = ui.push_item_width(button_width * 174. / 240.);
-                ui.input_text("##savefile_name", &mut self.savefile_name).hint("file name").build();
+                ui.input_text("##savefile_name", &mut self.savefile_name).hint("文件名").build();
                 self.input_edited = ui.is_item_active();
             }
 
             ui.same_line();
 
-            if ui.button_with_size("Import", [button_width * 58. / 240., BUTTON_HEIGHT]) {
+            if ui.button_with_size("导入", [button_width * 58. / 240., BUTTON_HEIGHT]) {
                 self.import_savefile();
             }
 
             ui.separator();
 
-            if ui.button_with_size("Show folder", [button_width, BUTTON_HEIGHT]) {
+            if ui.button_with_size("显示目录", [button_width, BUTTON_HEIGHT]) {
                 let path = self
                     .current_file
                     .as_ref()
@@ -284,7 +284,7 @@ impl Widget for SavefileManagerInner {
                     .arg(path.as_os_str())
                     .spawn()
                 {
-                    self.logs.push(format!("Couldn't show folder: {}", e));
+                    self.logs.push(format!("无法显示目录: {}", e));
                 };
             }
 
@@ -294,7 +294,7 @@ impl Widget for SavefileManagerInner {
             {
                 ui.close_current_popup();
                 if let Err(e) = self.file_tree.refresh() {
-                    self.logs.push(format!("Couldn't refresh file tree: {e}"));
+                    self.logs.push(format!("无法刷新文件列表: {e}"));
                 }
             }
         }
@@ -333,7 +333,7 @@ impl FileTree {
 
             Ok(FileTree::Directory { path, children })
         } else {
-            unreachable!("Savefile path is neither file nor directory");
+            unreachable!("存档文件路径既不是文件也不是目录");
         }
     }
 
