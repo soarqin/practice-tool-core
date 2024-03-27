@@ -29,7 +29,7 @@ impl<W: ReadWrite> StoreValue<W> {
 
     fn log_state(&mut self) {
         self.readwrite.read();
-        self.logs.push(format!("{0} triggered", self.readwrite.label()));
+        self.logs.push(format!("已触发 {0}", self.readwrite.label()));
     }
 }
 

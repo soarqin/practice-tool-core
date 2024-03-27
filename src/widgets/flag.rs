@@ -31,8 +31,8 @@ impl<F: Flag> FlagWidget<F> {
                 .unwrap_or_else(|| label.to_string()),
             flag,
             hotkey,
-            label_true: format!("{label} activated"),
-            label_false: format!("{label} deactivated"),
+            label_true: format!("{label} 已激活"),
+            label_false: format!("{label} 未激活"),
             logs: Vec::new(),
         }
     }

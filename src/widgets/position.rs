@@ -21,9 +21,9 @@ pub struct Position<P: PositionStorage> {
 impl<P: PositionStorage> Position<P> {
     pub fn new(storage: P, key_load: Option<Key>, key_save: Option<Key>) -> Self {
         let label_load =
-            key_load.map(|k| format!("Load ({k})")).unwrap_or_else(|| "Load".to_string());
+            key_load.map(|k| format!("加载 ({k})")).unwrap_or_else(|| "加载".to_string());
         let label_save =
-            key_save.map(|k| format!("Save ({k})")).unwrap_or_else(|| "Save".to_string());
+            key_save.map(|k| format!("保存 ({k})")).unwrap_or_else(|| "保存".to_string());
 
         Self {
             storage,
@@ -37,12 +37,12 @@ impl<P: PositionStorage> Position<P> {
 
     pub fn save_position(&mut self) {
         self.storage.save();
-        self.logs.push(format!("Saved position  {}", self.storage.display_stored()));
+        self.logs.push(format!("已保存位置 {}", self.storage.display_stored()));
     }
 
     pub fn load_position(&mut self) {
         self.storage.load();
-        self.logs.push(format!("Loaded position {}", self.storage.display_stored()));
+        self.logs.push(format!("已加载位置 {}", self.storage.display_stored()));
     }
 }
 
