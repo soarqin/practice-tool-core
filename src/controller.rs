@@ -45,7 +45,7 @@ impl TryFrom<&str> for ControllerCombination {
                 "y" => combination.buttons |= XINPUT_GAMEPAD_Y,
                 "back" => combination.buttons |= XINPUT_GAMEPAD_BACK,
                 "start" => combination.buttons |= XINPUT_GAMEPAD_START,
-                other => return Err(format!("Not a controller button: {other}")),
+                other => return Err(format!("无效的手柄按键：{other}")),
             }
         }
 

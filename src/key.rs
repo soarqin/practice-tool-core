@@ -220,7 +220,7 @@ impl FromStr for Modifier {
         MOD_REPR_MAP
             .iter()
             .find_map(|&(key, val)| if val == s { Some(key) } else { None })
-            .ok_or_else(|| format!("Could not find modifier: \"{s}\""))
+            .ok_or_else(|| format!("找不到修饰键：\"{s}\""))
     }
 }
 
@@ -317,12 +317,12 @@ impl TryFrom<&str> for Key {
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         let mut chunks = s.split('+').rev();
         let key_chunk =
-            chunks.next().ok_or_else(|| format!("Could not parse key: \"{s}\""))?.to_lowercase();
+            chunks.next().ok_or_else(|| format!("无法解析按键：\"{s}\""))?.to_lowercase();
 
         let key = REPR_MAP
             .iter()
             .find_map(|&(key, val)| if val == key_chunk { Some(key) } else { None })
-            .ok_or_else(|| format!("Could not find key: \"{key_chunk}\""))?;
+            .ok_or_else(|| format!("找不到按键：\"{key_chunk}\""))?;
 
         let mut modifier_chunks = chunks.rev().map(Modifier::from_str);
 

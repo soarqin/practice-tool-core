@@ -94,8 +94,8 @@ impl InputViewer {
         InputViewer {
             label: hotkey
                 .as_ref()
-                .map(|k| format!("Input viewer ({})", k))
-                .unwrap_or_else(|| "Input viewer".to_string()),
+                .map(|k| format!("输入显示 ({})", k))
+                .unwrap_or_else(|| "输入显示".to_string()),
             hotkey,
             enabled: false,
             history: History::new(seconds * 60),

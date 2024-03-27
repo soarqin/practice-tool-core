@@ -18,10 +18,10 @@ impl Icon {
     /// Text shown in place of the icon if the atlas couldn't be loaded.
     fn fallback(self) -> &'static str {
         match self {
-            Icon::Settings => "Settings",
-            Icon::Help => "Help",
-            Icon::Trash => "Delete",
-            Icon::Grip => "Move",
+            Icon::Settings => "设置",
+            Icon::Help => "帮助",
+            Icon::Trash => "删除",
+            Icon::Grip => "移动",
         }
     }
 

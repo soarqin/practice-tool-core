@@ -49,8 +49,12 @@ impl Update {
             None => &release.body,
         };
         let notes = format!(
-            "A new version of the practice tool is available!\n\nLatest version:    \
-             {version}\nInstalled version: {current_version}\n\nRelease notes:\n{notes}\n",
+            concat!(
+                "练习工具有新版本可用！\n\n",
+                "最新版本：{}\n当前版本：{}\n\n",
+                "更新说明：\n{}\n",
+            ),
+            version, current_version, notes,
         );
 
         Ok(Update::Available { url: release.html_url, notes })

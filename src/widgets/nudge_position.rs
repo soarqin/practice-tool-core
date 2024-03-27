@@ -18,13 +18,13 @@ pub struct NudgePosition<N: NudgePositionStorage> {
 impl<N: NudgePositionStorage> NudgePosition<N> {
     pub fn new(nudge_position: N, key_nudge_up: Option<Key>, key_nudge_down: Option<Key>) -> Self {
         let label_nudge_up = match key_nudge_up {
-            Some(key_nudge_up) => format!("Nudge up ({key_nudge_up})"),
-            None => "Nudge up".to_string(),
+            Some(key_nudge_up) => format!("微升 ({key_nudge_up})"),
+            None => "微升".to_string(),
         };
 
         let label_nudge_down = match key_nudge_down {
-            Some(key_nudge_down) => format!("Nudge down ({key_nudge_down})"),
-            None => "Nudge down".to_string(),
+            Some(key_nudge_down) => format!("微降 ({key_nudge_down})"),
+            None => "微降".to_string(),
         };
 
         Self { nudge_position, key_nudge_up, key_nudge_down, label_nudge_up, label_nudge_down }

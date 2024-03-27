@@ -41,7 +41,7 @@ impl TryFrom<String> for LevelFilterSerde {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Ok(LevelFilterSerde(
             LevelFilter::from_str(&value)
-                .map_err(|e| format!("Couldn't parse log level filter: {}", e))?,
+                .map_err(|e| format!("无法解析日志级别筛选条件：{}", e))?,
         ))
     }
 }
@@ -63,5 +63,5 @@ impl AsRef<str> for RadialMenu {
 pub fn parse_toml<T: DeserializeOwned>(s: &str) -> Result<T, String> {
     let de = toml::de::Deserializer::new(s);
     serde_path_to_error::deserialize(de)
-        .map_err(|e| format!("TOML config error at {}: {}", e.path(), e.inner()))
+        .map_err(|e| format!("TOML 配置在 {} 处出错：{}", e.path(), e.inner()))
 }

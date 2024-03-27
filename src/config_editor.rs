@@ -81,8 +81,10 @@ pub trait ConfigSchema: 'static {
     fn show_cursor(show: bool);
 }
 
-const MENU_ITEM: Kind =
-    Kind { name: "Menu item", fields: &[("label", Field::Text("New item")), ("key", Field::Key)] };
+const MENU_ITEM: Kind = Kind {
+    name: "菜单项",
+    fields: &[("label", Field::Text("新菜单项")), ("key", Field::Key)],
+};
 
 pub struct ConfigEditor<S: ConfigSchema> {
     path: Option<PathBuf>,
@@ -170,7 +172,7 @@ impl<S: ConfigSchema> ConfigEditor<S> {
     fn render_footer(&mut self, ui: &Ui) {
         let can_save = self.dirty && self.saving.is_none() && matches!(self.document, Some(Ok(_)));
         ui.disabled(!can_save, || {
-            if ui.button("Save") {
+            if ui.button("保存") {
                 self.validate(ui);
             }
         });
@@ -178,7 +180,7 @@ impl<S: ConfigSchema> ConfigEditor<S> {
         // Closing mid-save could apply the result at an unexpected time, or let
         // the old file be reopened and saved over the new one.
         ui.disabled(self.saving.is_some(), || {
-            if ui.button("Close") {
+            if ui.button("关闭") {
                 if self.dirty {
                     ui.open_popup(CONFIRM_CLOSE);
                 } else {
@@ -192,19 +194,18 @@ impl<S: ConfigSchema> ConfigEditor<S> {
         match &self.status {
             Some(Ok(status)) => ui.text(status),
             Some(Err(e)) => ui.text_colored(ERROR_COLOR, e),
-            None if self.dirty => ui.text_disabled("Unsaved changes"),
+            None if self.dirty => ui.text_disabled("有未保存的更改"),
             None => {},
         }
 
         if confirm(
             ui,
             CONFIRM_SAVE,
-            "Overwrite the configuration file?\nWidgets will be reloaded, losing their state \
-             (e.g. saved positions).",
+            "是否覆盖配置文件？\n组件将重新加载，原有状态（例如已保存的位置）将丢失。",
         ) {
             self.save();
         }
-        if confirm(ui, CONFIRM_CLOSE, "Discard unsaved changes?") {
+        if confirm(ui, CONFIRM_CLOSE, "是否放弃未保存的更改？") {
             self.close(ui);
         }
     }
@@ -228,7 +229,7 @@ impl<S: ConfigSchema> ConfigEditor<S> {
 
     fn save(&mut self) {
         let (Some(Ok(document)), Some(path)) = (&self.document, self.path.clone()) else {
-            self.status = Some(Err("Couldn't find config file".to_string()));
+            self.status = Some(Err("找不到配置文件".to_string()));
             return;
         };
 
@@ -236,23 +237,21 @@ impl<S: ConfigSchema> ConfigEditor<S> {
         let (tx, rx) = crossbeam_channel::bounded(1);
         thread::spawn(move || tx.send(replace_file::<S>(&path, &content)));
         self.saving = Some(rx);
-        self.status = Some(Ok("Saving...".to_string()));
+        self.status = Some(Ok("正在保存…".to_string()));
     }
 
     fn poll_saving(&mut self) -> Option<S::Config> {
         let result = match self.saving.as_ref()?.try_recv() {
             Ok(result) => result,
             Err(TryRecvError::Empty) => return None,
-            Err(TryRecvError::Disconnected) => {
-                Err("Saving thread stopped unexpectedly".to_string())
-            },
+            Err(TryRecvError::Disconnected) => Err("保存线程意外停止".to_string()),
         };
         self.saving = None;
 
         match result {
             Ok(config) => {
                 self.dirty = false;
-                self.status = Some(Ok("Configuration saved".to_string()));
+                self.status = Some(Ok("配置已保存".to_string()));
                 Some(config)
             },
             Err(e) => {
@@ -268,7 +267,7 @@ impl<S: ConfigSchema> ConfigEditor<S> {
 fn replace_file<S: ConfigSchema>(path: &Path, content: &str) -> Result<S::Config, String> {
     let temp = path.with_extension("tmp.toml");
     let result = write_verified::<S>(&temp, content).and_then(|config| {
-        fs::rename(&temp, path).map_err(|e| format!("Couldn't replace config file: {e}"))?;
+        fs::rename(&temp, path).map_err(|e| format!("无法替换配置文件：{e}"))?;
         Ok(config)
     });
     if result.is_err() {
@@ -278,25 +277,23 @@ fn replace_file<S: ConfigSchema>(path: &Path, content: &str) -> Result<S::Config
 }
 
 fn write_verified<S: ConfigSchema>(path: &Path, content: &str) -> Result<S::Config, String> {
-    fs::write(path, content).map_err(|e| format!("Couldn't write config file: {e}"))?;
-    let written =
-        fs::read_to_string(path).map_err(|e| format!("Couldn't read back config file: {e}"))?;
+    fs::write(path, content).map_err(|e| format!("无法写入配置文件：{e}"))?;
+    let written = fs::read_to_string(path).map_err(|e| format!("无法回读配置文件：{e}"))?;
     if written != content {
-        return Err("Config file content doesn't match what was written".to_string());
+        return Err("配置文件内容与写入的内容不一致".to_string());
     }
     S::parse(&written)
 }
 
 fn load_document<S: ConfigSchema>(path: Option<&Path>) -> Result<DocumentMut, String> {
-    let path = path.ok_or("Couldn't find config file")?;
-    let content =
-        fs::read_to_string(path).map_err(|e| format!("Couldn't read config file: {e}"))?;
+    let path = path.ok_or("找不到配置文件")?;
+    let content = fs::read_to_string(path).map_err(|e| format!("无法读取配置文件：{e}"))?;
     parse_document::<S>(&content)
 }
 
 fn parse_document<S: ConfigSchema>(content: &str) -> Result<DocumentMut, String> {
     let mut document: DocumentMut =
-        content.parse().map_err(|e| format!("Couldn't parse config file: {e}"))?;
+        content.parse().map_err(|e| format!("无法解析配置文件：{e}"))?;
 
     // Lists written as arrays of tables (`[[commands]]`) become arrays of
     // inline tables, which is what the editor works with.
@@ -314,10 +311,12 @@ fn parse_document<S: ConfigSchema>(content: &str) -> Result<DocumentMut, String>
     DetachTrailing.visit_document_mut(&mut document);
 
     if !document.get("commands").is_some_and(Item::is_array) {
-        return Err("Missing commands".to_string());
+        return Err("缺少 commands 配置项".to_string());
     }
-    let settings =
-        document.get_mut("settings").and_then(Item::as_table_like_mut).ok_or("Missing settings")?;
+    let settings = document
+        .get_mut("settings")
+        .and_then(Item::as_table_like_mut)
+        .ok_or("缺少 settings 配置表")?;
     add_missing_indicators::<S>(settings);
     document.entry("radial-menu").or_insert(toml_edit::value(Array::new()));
 
@@ -493,20 +492,20 @@ fn render_document<S: ConfigSchema>(
 ) -> bool {
     let Some(_tabs) = ui.tab_bar("##config_editor_tabs") else { return false };
 
-    let columns = [("Widget", 14.), ("Value", 0.), ("Hotkey", 0.)];
-    let mut changed = tab(ui, "Widgets", &columns, footer_height, || {
+    let columns = [("组件", 14.), ("值", 0.), ("快捷键", 0.)];
+    let mut changed = tab(ui, "组件", &columns, footer_height, || {
         let commands = document.get_mut("commands")?.as_array_mut()?;
         Some(render_entries::<S>(ui, scratch, commands, S::WIDGETS, icons))
     });
 
-    let columns = [("Item", 9.), ("Label", 0.), ("Hotkey", 0.)];
-    changed |= tab(ui, "Radial menu", &columns, footer_height, || {
+    let columns = [("菜单项", 9.), ("标签", 0.), ("快捷键", 0.)];
+    changed |= tab(ui, "轮盘菜单", &columns, footer_height, || {
         let items = document.get_mut("radial-menu")?.as_array_mut()?;
         Some(render_entries::<S>(ui, scratch, items, slice::from_ref(&MENU_ITEM), icons))
     });
 
-    let columns = [("Setting", 18.), ("Value", 0.)];
-    changed |= tab(ui, "Settings", &columns, footer_height, || {
+    let columns = [("设置项", 18.), ("值", 0.)];
+    changed |= tab(ui, "设置", &columns, footer_height, || {
         let settings = document.get_mut("settings")?.as_table_like_mut()?;
         Some(render_settings::<S>(ui, scratch, settings))
     });
@@ -571,7 +570,7 @@ fn render_entries<S: ConfigSchema>(
         let entry = entry.and_then(|entry| {
             Some((kinds.iter().find(|kind| entry.contains_key(kind.fields[0].0))?, entry))
         });
-        let name = entry.as_ref().map_or("Unknown", |(kind, _)| kind.name);
+        let name = entry.as_ref().map_or("未知", |(kind, _)| kind.name);
 
         let _id = ui.push_id_usize(i);
         ui.table_next_row();
@@ -597,7 +596,7 @@ fn render_entries<S: ConfigSchema>(
         if icons.button(ui, "##delete", Icon::Trash) {
             ui.open_popup("##confirm_delete");
         }
-        if confirm(ui, "##confirm_delete", format_args!("Delete {name}?")) {
+        if confirm(ui, "##confirm_delete", format_args!("是否删除「{name}」？")) {
             deleted = Some(i);
         }
         ui.same_line();
@@ -646,7 +645,7 @@ fn render_entries<S: ConfigSchema>(
 
     ui.table_next_row();
     ui.table_next_column();
-    if ui.button_with_size("+ Add", [ui.content_region_avail()[0], 0.]) {
+    if ui.button_with_size("+ 添加", [ui.content_region_avail()[0], 0.]) {
         match kinds {
             [kind] => {
                 push_entry(entries, new_entry::<S>(kind));
@@ -734,6 +733,57 @@ fn render_column<S: ConfigSchema>(
     changed
 }
 
+fn field_label(name: &str) -> &str {
+    match name {
+        "log_level" => "日志级别",
+        "display" => "界面开关快捷键",
+        "hide" => "隐藏界面快捷键",
+        "dxgi_debug" => "DXGI 调试",
+        "show_console" => "显示控制台",
+        "disable_update_prompt" => "禁用更新提示",
+        "radial_menu_open" => "轮盘菜单按键组合",
+        "indicators" => "指示器",
+        "flag" => "开关",
+        "flags" => "组合开关",
+        "label" => "标签",
+        "group" => "分组",
+        "commands" => "组件",
+        "savefile_manager" => "存档管理",
+        "item_spawner" => "生成物品",
+        "character_stats" => "角色属性",
+        "position" => "加载位置",
+        "save" => "保存位置",
+        "nudge" => "位置调整幅度",
+        "nudge_up" => "微升",
+        "nudge_down" => "微降",
+        "cycle_speed" => "速度",
+        "cycle_color" => "模型颜色",
+        "runes" => "卢恩",
+        "quitout" => "快速退出",
+        "target" => "目标单位信息",
+        "warp" => "传送",
+        "input_viewer" => "输入显示",
+        "seconds" => "显示时长（秒）",
+        "hotkey" | "key" => "快捷键",
+        _ => name,
+    }
+}
+
+fn indicator_label(name: &str) -> &str {
+    match name {
+        "game_version" => "游戏版本",
+        "position" => "玩家位置",
+        "position_change" => "玩家速度",
+        "position_distance" => "玩家距离",
+        "animation" => "动画",
+        "igt" => "游戏内时间(IGT)",
+        "fps" => "FPS",
+        "framecount" => "帧数计数器",
+        "imgui_debug" => "ImGui调试信息",
+        _ => name,
+    }
+}
+
 /// Renders one row per setting, with its name and value.
 fn render_settings<S: ConfigSchema>(
     ui: &Ui,
@@ -745,11 +795,11 @@ fn render_settings<S: ConfigSchema>(
         ui.table_next_row();
         ui.table_next_column();
         ui.align_text_to_frame_padding();
-        ui.text(name);
+        ui.text(field_label(name));
         // Only applied at startup.
         if matches!(name, "log_level" | "show_console") {
             ui.same_line();
-            ui.text_disabled("(requires restart)");
+            ui.text_disabled("（需重启）");
         }
         ui.table_next_column();
         let _width = ui.push_item_width(-f32::MIN_POSITIVE);
@@ -791,7 +841,7 @@ fn render_value<S: ConfigSchema>(
             scratch.push_str(text);
             let _color = (!is_valid(field, text))
                 .then(|| ui.push_style_color(StyleColor::Text, ERROR_COLOR));
-            ui.input_text("##value", scratch).hint(name).build().then(|| match field {
+            ui.input_text("##value", scratch).hint(field_label(name)).build().then(|| match field {
                 Field::OptCombo if scratch.is_empty() => None,
                 _ => Some(scratch.as_str().into()),
             })
@@ -825,7 +875,7 @@ fn render_value<S: ConfigSchema>(
     });
 
     if ui.is_item_hovered() {
-        ui.tooltip_text(name);
+        ui.tooltip_text(field_label(name));
     }
 
     let Some(value) = edit else { return false };
@@ -866,7 +916,7 @@ fn hotkey(
         let _color = color.map(|color| ui.push_style_color(StyleColor::Text, color));
 
         scratch.clear();
-        scratch.push_str(if current.is_empty() { name } else { current });
+        scratch.push_str(if current.is_empty() { field_label(name) } else { current });
         scratch.push_str("###hotkey");
         if ui.button_with_size(&scratch, [ui.calc_item_width(), 0.]) {
             ui.open_popup("##capture");
@@ -876,9 +926,9 @@ fn hotkey(
     let mut new = None;
     ui.modal_popup_config("##capture").resizable(false).movable(false).title_bar(false).build(
         || {
-            ui.text(format!("Press the new {name} hotkey..."));
+            ui.text(format!("请按下用于 {} 的新快捷键…", field_label(name)));
 
-            if ui.is_key_pressed(imgui::Key::Escape) || ui.button("Cancel") {
+            if ui.is_key_pressed(imgui::Key::Escape) || ui.button("取消") {
                 ui.close_current_popup();
             } else if let Some(key) = Key::pressed(ui) {
                 new = Some(key.to_string());
@@ -887,7 +937,7 @@ fn hotkey(
 
             if !matches!(field, Field::Key) {
                 ui.same_line();
-                if ui.button("Clear") {
+                if ui.button("清除") {
                     new = Some(String::new());
                     ui.close_current_popup();
                 }
@@ -1000,7 +1050,8 @@ fn indicators(ui: &Ui, indicators: Option<&Array>) -> Option<Array> {
         let mut enabled = indicator.get("enabled").and_then(toml_edit::Value::as_bool);
 
         if let (Some(name), Some(enabled)) = (name, enabled.as_mut()) {
-            if ui.checkbox(name, enabled) {
+            let label = format!("{}###{name}", indicator_label(name));
+            if ui.checkbox(label, enabled) {
                 let mut indicators = indicators?.clone();
                 let indicator = indicators.get_mut(i)?.as_inline_table_mut()?;
                 set(indicator, "enabled", Some((*enabled).into()));
@@ -1018,12 +1069,12 @@ fn confirm(ui: &Ui, id: &str, question: impl fmt::Display) -> bool {
 
     ui.modal_popup_config(id).resizable(false).movable(false).title_bar(false).build(|| {
         ui.text(question.to_string());
-        if ui.button("Yes") {
+        if ui.button("是") {
             confirmed = true;
             ui.close_current_popup();
         }
         ui.same_line();
-        if ui.button("No") {
+        if ui.button("否") {
             ui.close_current_popup();
         }
     });
@@ -1229,7 +1280,7 @@ indicators = [
         ));
         assert!(written.contains(
             "radial-menu = [\n  { key = \"f1\", label = \"Flag A\" },\n  { key = \"p\", label = \
-             \"Quitout\" },\n  { label = \"New item\", key = \"f12\" },\n]"
+             \"Quitout\" },\n  { label = \"新菜单项\", key = \"f12\" },\n]"
         ));
     }
 
@@ -1249,9 +1300,11 @@ indicators = [
     fn test_flags_field() {
         let entry = new_entry(&TestSchema::WIDGETS[1]);
         assert_eq!(entry.to_string(), "{ flags = [], label = \"Flags\" }");
+        assert_eq!(field_label("custom_setting"), "custom_setting");
+        assert_eq!(indicator_label("custom_indicator"), "custom_indicator");
 
-        // Renders the widgets tab, holding a multi flag entry. Tab contents
-        // show from the second frame on.
+        // Render both widgets and translated settings without changing TOML
+        // keys or indicator IDs. Tab contents show from the second frame on.
         let mut document = parse_document(CONFIG).unwrap();
         let mut ctx = imgui::Context::create();
         ctx.set_ini_filename(None);
@@ -1270,11 +1323,20 @@ indicators = [
                     0.,
                 );
             });
+            ui.window("settings-test").size([600., 600.], Condition::Always).build(|| {
+                let _table = ui.begin_table("settings", 2).expect("Settings table is visible");
+                changed |= render_settings::<TestSchema>(
+                    ui,
+                    &mut String::new(),
+                    document["settings"].as_table_like_mut().unwrap(),
+                );
+            });
             ctx.render();
         }
 
         assert!(!changed);
         assert_eq!(document.to_string(), CONFIG);
+        TestSchema::parse(&document.to_string()).unwrap();
     }
 
     #[test]

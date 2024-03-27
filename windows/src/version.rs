@@ -66,10 +66,9 @@ pub fn check_version<V: TryFrom<(u32, u32, u32)> + Copy>(
         Ok(version) => Ok(*cell.get_or_init(|| version)),
         Err(_) => {
             message_box(
-                &format!("{tool_name} - Unsupported version"),
+                &format!("{tool_name} - 不支持的版本"),
                 &format!(
-                    "The current game version, {major}.{minor}.{patch}, is not supported \
-                     yet.\n\nAn update will be released soon, please stay tuned!"
+                    "暂不支持当前游戏版本 {major}.{minor}.{patch}。\n\n更新将于近期发布，请留意。"
                 ),
                 MB_OK | MB_ICONERROR,
             );
