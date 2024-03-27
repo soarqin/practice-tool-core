@@ -44,13 +44,13 @@ pub struct StatsEditor<S: Stats> {
 impl<S: Stats> StatsEditor<S> {
     pub fn new(stats: S, key_open: Option<Key>, key_close: Option<Key>) -> Self {
         let label_open = match key_open {
-            Some(key_open) => format!("Edit stats ({key_open})"),
-            None => "Edit stats".to_string(),
+            Some(key_open) => format!("编辑属性 ({key_open})"),
+            None => "编辑属性".to_string(),
         };
 
         let label_close = match key_close {
-            Some(key_close) => format!("Close ({key_close})"),
-            None => "Close".to_string(),
+            Some(key_close) => format!("关闭 ({key_close})"),
+            None => "关闭".to_string(),
         };
 
         Self { stats, key_close, label_close, key_open, label_open }
@@ -127,7 +127,7 @@ impl<S: Stats> Widget for StatsEditor<S> {
                 }
             }
 
-            if ui.button_with_size("Apply", [button_width, button_height]) {
+            if ui.button_with_size("应用", [button_width, button_height]) {
                 self.stats.write();
             }
 
