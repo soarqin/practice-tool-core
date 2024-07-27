@@ -105,12 +105,17 @@ impl<S: Stats> Widget for StatsEditor<S> {
             for datum in data {
                 match datum {
                     Datum::Int { label, value, min, max } => {
-                        if ui.input_int(label, value).build() {
+                        if max >= 0 && ui.input_int(label, value).build() {
                             *value = (*value).clamp(min, max);
                         }
                     },
                     Datum::Float { label, value, min, max } => {
-                        if ui.input_float(label, value).build() {
+                        if max >= 0f32 && ui.input_float(label, value).build() {
+                            *value = (*value).clamp(min, max);
+                        }
+                    },
+                    Datum::Byte { label, value, min, max } => {
+                        if max >= 0 && ui.input_scalar(label, value).step(1).build() {
                             *value = (*value).clamp(min, max);
                         }
                     },
