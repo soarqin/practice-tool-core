@@ -1,5 +1,6 @@
 use imgui::sys::{igGetCursorPosX, igGetCursorPosY, igGetWindowPos, igSetNextWindowPos, ImVec2};
 use imgui::{Condition, WindowFlags};
+use rust_i18n::t;
 
 use crate::key::Key;
 use crate::widgets::{scaling_factor, Widget, BUTTON_HEIGHT, BUTTON_WIDTH};
@@ -49,13 +50,13 @@ pub struct StatsEditor<S: Stats> {
 impl<S: Stats> StatsEditor<S> {
     pub fn new(stats: S, key_open: Option<Key>, key_close: Option<Key>) -> Self {
         let label_open = match key_open {
-            Some(key_open) => format!("Edit stats ({key_open})"),
-            None => "Edit stats".to_string(),
+            Some(key_open) => t!("Edit stats (%{key_open})", key_open = key_open).to_string(),
+            None => t!("Edit stats").to_string(),
         };
 
         let label_close = match key_close {
-            Some(key_close) => format!("Close ({key_close})"),
-            None => "Close".to_string(),
+            Some(key_close) => t!("Close (%{key_close})", key_close = key_close).to_string(),
+            None => t!("Close").to_string(),
         };
 
         Self { stats, key_close, label_close, key_open, label_open }
@@ -128,7 +129,7 @@ impl<S: Stats> Widget for StatsEditor<S> {
                 }
             }
 
-            if ui.button_with_size("Apply", [button_width, button_height]) {
+            if ui.button_with_size(t!("Apply"), [button_width, button_height]) {
                 self.stats.write();
             }
 

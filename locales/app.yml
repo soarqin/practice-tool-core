@@ -1,0 +1,16 @@
+Apply:
+  en: Apply
+  zh-CN: 应用
+Close:
+  en: Close
+  zh-CN: 关闭
+Close (%{key_close}):
+  en: Close (%{key_close})
+  zh-CN: 关闭 (%{key_close})
+Edit stats:
+  en: Edit stats
+  zh-CN: 编辑属性
+Edit stats (%{key_open}):
+  en: Edit stats (%{key_open})
+  zh-CN: 编辑属性 (%{key_open})
+_version: 2
