@@ -9,7 +9,8 @@ dotenv = "0.15.0"
 heck = "0.4.0"
 once_cell.workspace = true
 parking_lot.workspace = true
-pelite = "0.10.0"
+pelite.workspace = true
+practice-tool-core = { version = "0.1.0", path = ".." }
 quick-xml = "0.41"
 rayon = "1.5.3"
 regex = "1.5.5"

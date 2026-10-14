@@ -1,5 +1,7 @@
 // #![deny(missing_docs)]
 
+pub mod aob;
+pub mod boyer_moore;
 pub mod config;
 pub mod config_editor;
 pub mod controller;
